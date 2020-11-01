@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>TecentOS tiny in STM32F4 | Zmeng Blogs | 记一些IoT和OpenFOAM的事儿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="TecentOS tiny">
+    <meta name="description" content="2019 年腾讯开源了自己的物联网(internet of thing, IoT) 操作系统 TencentOS tiny，我加入了他们的官方讨论群，关注了很久。最近疫情在家把TencentOS tiny移植到了自己的一块STM32F407的开发板上，移植还算顺利，这里记录一下过程。  需求腾讯官方移植指南没有具体型号MCU的介绍，网上我只找到了这篇博客 https:&#x2F;&#x2F;juejin.im&#x2F;po">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TecentOS tiny in STM32F4">
+<meta property="og:url" content="http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/index.html">
+<meta property="og:site_name" content="Zmeng Blogs">
+<meta property="og:description" content="2019 年腾讯开源了自己的物联网(internet of thing, IoT) 操作系统 TencentOS tiny，我加入了他们的官方讨论群，关注了很久。最近疫情在家把TencentOS tiny移植到了自己的一块STM32F407的开发板上，移植还算顺利，这里记录一下过程。  需求腾讯官方移植指南没有具体型号MCU的介绍，网上我只找到了这篇博客 https:&#x2F;&#x2F;juejin.im&#x2F;po">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5ec98432535d910013000009">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000d">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000011">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000e">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000f">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000b">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000012">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000010">
+<meta property="og:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000c">
+<meta property="article:published_time" content="2020-05-24T17:41:27.000Z">
+<meta property="article:modified_time" content="2020-11-01T21:20:52.077Z">
+<meta property="article:author" content="Zmeng">
+<meta property="article:tag" content="TecentOS tiny">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5ec98432535d910013000009">
+    
+        <link rel="alternate" type="application/atom+xml" title="Zmeng Blogs" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/KN.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">Zmeng</h5>
+          <a href="mailto:shijiexu2010@gmail.com" title="shijiexu2010@gmail.com" class="mail">shijiexu2010@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/ZmengXu" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                关注
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                文章
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/messages"  >
+                <i class="icon icon-lg icon-comments"></i>
+                留言
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user-circle"></i>
+                关于
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">TecentOS tiny in STM32F4</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+		
+
+        <a href="/" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-home"></i>
+        </a>
+
+		
+		
+		<a href="/atom.xml" target="_blank" title="rss" class="header-icon waves-effect waves-circle waves-light rss" id="menuFeed">
+			<i class="icon icon-lg icon-rss"></i>
+		</a>
+		
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">TecentOS tiny in STM32F4</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-05-24T17:41:27.000Z" itemprop="datePublished" class="page-time">
+  2020-05-24
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/IoT/">IoT</a><ul class="article-category-list-child"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/IoT/STM32/">STM32</a></li></ul></li></ul>
+
+            
+        </h5>
+    </div>
+
+	
+			
+
+		
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#需求"><span class="post-toc-number">1.</span> <span class="post-toc-text">需求</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#开发板介绍"><span class="post-toc-number">2.</span> <span class="post-toc-text">开发板介绍</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#具体步骤"><span class="post-toc-number">3.</span> <span class="post-toc-text">具体步骤</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#创建keil下的裸机工程模板"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">创建keil下的裸机工程模板</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#创建新的工程并移植TencentOS-tiny"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">创建新的工程并移植TencentOS tiny</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#下载TencentOS-tiny的源码"><span class="post-toc-number">3.2.1.</span> <span class="post-toc-text">下载TencentOS tiny的源码</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#修改工程文件"><span class="post-toc-number">3.2.2.</span> <span class="post-toc-text">修改工程文件</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#添加-c和-s文件到工程中"><span class="post-toc-number">3.2.3.</span> <span class="post-toc-text">添加.c和.s文件到工程中</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#添加TencentOS-tiny头文件目录"><span class="post-toc-number">3.2.4.</span> <span class="post-toc-text">添加TencentOS tiny头文件目录</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#修改部分代码"><span class="post-toc-number">3.2.5.</span> <span class="post-toc-text">修改部分代码</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#编写main-c"><span class="post-toc-number">3.2.6.</span> <span class="post-toc-text">编写main.c</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#编译并测试"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">编译并测试</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#下载链接"><span class="post-toc-number">4.</span> <span class="post-toc-text">下载链接</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-TecentOS-tiny-in-STM32F4"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">TecentOS tiny in STM32F4</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-05-24 17:41:27" datetime="2020-05-24T17:41:27.000Z"  itemprop="datePublished">2020-05-24</time>
+
+			
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/IoT/">IoT</a><ul class="article-category-list-child"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/IoT/STM32/">STM32</a></li></ul></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>2019 年腾讯开源了自己的物联网(internet of thing, IoT) 操作系统 <a href="https://github.com/Tencent/TencentOS-tiny" target="_blank" rel="noopener">TencentOS tiny</a>，我加入了他们的官方讨论群，关注了很久。最近疫情在家把<a href="https://github.com/Tencent/TencentOS-tiny" target="_blank" rel="noopener">TencentOS tiny</a>移植到了自己的一块STM32F407的开发板上，移植还算顺利，这里记录一下过程。</p>
+</blockquote>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>腾讯官方<a href="https://github.com/Tencent/TencentOS-tiny/blob/master/doc/10.Porting_Manual_for_KEIL.md" target="_blank" rel="noopener">移植指南</a>没有具体型号MCU的介绍，网上我只找到了这篇博客 <a href="https://juejin.im/post/5da7289d51882553690284a3" target="_blank" rel="noopener">https://juejin.im/post/5da7289d51882553690284a3</a> 介绍了STM32F103的MCU的移植。我自己的开发板STM32F407的，网上没有，有必要记录下来供参考。</p>
+<h1 id="开发板介绍"><a href="#开发板介绍" class="headerlink" title="开发板介绍"></a>开发板介绍</h1><p>我用的是这个<a href="https://os.mbed.com/users/hudakz/code/STM32F407VET6_Hello//rev/1a172e2d6b86/" target="_blank" rel="noopener">STM32F407VET6 black board</a>开发板，ARM Cortex-M4 内核，相同内核的开发板都可以参考。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5ec98432535d910013000009" alt="STM32F407VET6 black board" title="">
+                </div>
+                <div class="image-caption">STM32F407VET6 black board</div>
+            </figure>
+
+<h1 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h1><hr>
+<h2 id="创建keil下的裸机工程模板"><a href="#创建keil下的裸机工程模板" class="headerlink" title="创建keil下的裸机工程模板"></a><span id="jump">创建keil下的裸机工程模板</span></h2><p>先找到开发板的前后台系统工程模板，一般买开发板的时候学习资料里就有，也可以在我的github上下载，这是下载链接<a href="https://github.com/ZmengXu/STM32ProjectTemplate.git" target="_blank" rel="noopener">https://github.com/ZmengXu/STM32ProjectTemplate.git</a>。</p>
+<p>用Keil软件(也可以在linux或者mac上写个Makefile文件通过arm-none-eabi-gcc来编译，后面我会写个这样的教程)打开工程模板中<code>USER/Template.uvprojx</code>文件, 我用的是Keil μVision5，打开后是这样的</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000d" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+<p><code>F7</code>编译工程文件，如果下载的是我GitHub上提供的文件，编译是可以直接通过的，并且会自动新建一个<code>OBJ</code>文件夹，并在该文件夹下生成<code>Template.hex</code>的16进制文件。</p>
+<p>接下来将<code>Template.hex</code>文件写入<code>STM32F407</code>开发板。我用的是ST-LINK V2 采用SW方式连接开发板，打开魔法棒<code>Options for Target</code>按钮，选<code>Debug</code>， 右侧<code>Use</code>选项打开下拉菜单选<code>ST-Link Debugger</code>，然后点击<code>setting</code>，修改<code>ort</code>选项为<code>SW</code>，连接好开发板插入<code>ST-LINK</code>，这时候右侧<code>SW Device</code>就可以看到电脑找到了刚刚插入的设备。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000011" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>回到桌面，点击<code>Download</code>，刚刚的16进制文件<code>Template.hex</code>就被写入开发板了。连接上串口，打开串口调试助手，按一下开发板上的复位，调试助手就可以收到这样的输入信息了。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000e" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<h2 id="创建新的工程并移植TencentOS-tiny"><a href="#创建新的工程并移植TencentOS-tiny" class="headerlink" title="创建新的工程并移植TencentOS tiny"></a>创建新的工程并移植TencentOS tiny</h2><h3 id="下载TencentOS-tiny的源码"><a href="#下载TencentOS-tiny的源码" class="headerlink" title="下载TencentOS tiny的源码"></a>下载TencentOS tiny的源码</h3><p>去GitHub上<a href="https://github.com/Tencent/TencentOS-tiny" target="_blank" rel="noopener">https://github.com/Tencent/TencentOS-tiny</a>或者去腾讯工蜂开源仓<a href="https://git.code.tencent.com/Tencent_Open_Source/TencentOS-tiny" target="_blank" rel="noopener">https://git.code.tencent.com/Tencent_Open_Source/TencentOS-tiny</a>下载。我是在GitHub上下的，参考<a href="https://juejin.im/post/5da7289d51882553690284a3" target="_blank" rel="noopener">杰杰</a>的建议后者会快些。</p>
+<p>下载下来后有很多子目录，但我们只需要下面几个目录。</p>
+<table>
+<thead>
+<tr>
+<th>一级目录</th>
+<th align="right">二级目录</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>arch</td>
+<td align="right">arm/arm-v7m</td>
+<td align="center">TencentOS tiny适配的IP核架构（含M核中断、调度、tick相关代码）</td>
+</tr>
+<tr>
+<td>board</td>
+<td align="right">STM32F407VGT6_discovery/TOS_CONFIG</td>
+<td align="center">移植目标芯片的工程文件的配置文件，根据情况选一个最接近自己开发板的</td>
+</tr>
+<tr>
+<td>kernel</td>
+<td align="right">core</td>
+<td align="center">TencentOS tiny内核源码</td>
+</tr>
+<tr>
+<td></td>
+<td align="right">pm</td>
+<td align="center">tiny低功耗模块源码，本次移植暂不使用</td>
+</tr>
+<tr>
+<td>osal</td>
+<td align="right">cmsis_os</td>
+<td align="center">TencentOS tiny提供的cmsis os 适配</td>
+</tr>
+</tbody></table>
+<h3 id="修改工程文件"><a href="#修改工程文件" class="headerlink" title="修改工程文件"></a>修改工程文件</h3><p>复制一个模板工程目录，重命名为<code>Demo_MultiTask</code>，在该目录下新建一个文件夹，<code>TencentOS</code>，然后把<code>arm-v7m</code>，<code>core</code>和<code>cmsis_os</code>目录复制到<code>TencentOS</code>中。</p>
+<p>创建一个<code>TOS_CONFIG</code>子文件夹，并创建一个<code>tos_config.h</code>文件，下面是我用到的，附有腾讯官方解释</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _TOS_CONFIG_H_</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  _TOS_CONFIG_H_</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"stm32f4xx.h"</span>	<span class="comment">// 目标芯片头文件，用户需要根据情况更改</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TASK_PRIO_MAX           10u 	<span class="comment">// 配置TencentOS tiny默认支持的最大优先级数量</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_ROUND_ROBIN_EN          0u		<span class="comment">// 配置TencentOS tiny的内核是否开启时间片轮转</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_OBJECT_VERIFY_EN           1u	<span class="comment">// 配置TencentOS tiny是否校验指针合法</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TASK_DYNAMIC_CREATE_EN  1u		<span class="comment">// TencentOS tiny 动态任务创建功能宏</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_EVENT_EN                1u		<span class="comment">// TencentOS tiny 事件模块功能宏</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MMBLK_EN                1u		<span class="comment">//配置TencentOS tiny是否开启内存块管理模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MMHEAP_EN               1u		<span class="comment">//配置TencentOS tiny是否开启动态内存模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MMHEAP_DEFAULT_POOL_EN  1u		<span class="comment">// TencentOS tiny 默认动态内存池功能宏</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MMHEAP_DEFAULT_POOL_SIZE        0x100	<span class="comment">// 配置TencentOS tiny默认动态内存池大小</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MUTEX_EN                1u		<span class="comment">// 配置TencentOS tiny是否开启互斥锁模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MESSAGE_QUEUE_EN        1u		<span class="comment">// 配置TencentOS tiny是否开启消息队列模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_MAIL_QUEUE_EN           1u		<span class="comment">// 配置TencentOS tiny是否开启消息邮箱模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_PRIORITY_MESSAGE_QUEUE_EN	1u	<span class="comment">// 配置TencentOS tiny是否开启优先级消息队列模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_PRIORITY_MAIL_QUEUE_EN	1u		<span class="comment">// 配置TencentOS tiny是否开启优先级消息邮箱模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TIMER_EN                1u		<span class="comment">// 配置TencentOS tiny是否开启软件定时器模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_PWR_MGR_EN              0u		<span class="comment">// 配置TencentOS tiny是否开启外设电源管理模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TICKLESS_EN             0u		<span class="comment">// 配置Tickless 低功耗模块开关</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_SEM_EN                  1u		<span class="comment">// 配置TencentOS tiny是否开启信号量模块</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TASK_STACK_DRAUGHT_DEPTH_DETACT_EN      1u	<span class="comment">// 配置TencentOS tiny是否开启任务栈深度检测</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_FAULT_BACKTRACE_EN      0u		<span class="comment">// 配置TencentOS tiny是否开启异常栈回溯功能</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_IDLE_TASK_STK_SIZE      1512	<span class="comment">// 配置TencentOS tiny空闲任务栈大小</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_CPU_TICK_PER_SECOND     1000u	<span class="comment">// 配置TencentOS tiny的tick频率</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_CPU_CLOCK               (SystemCoreClock)	<span class="comment">// 配置TencentOS tiny CPU频率</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TOS_CFG_TIMER_AS_PROC           1u		<span class="comment">// 配置是否将TIMER配置成函数模式</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="添加-c和-s文件到工程中"><a href="#添加-c和-s文件到工程中" class="headerlink" title="添加.c和.s文件到工程中"></a>添加.c和.s文件到工程中</h3><p>打开<code>USER/Template.uvprojx</code>文件，依次添加arch平台代码和内核源码。具体地</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000f" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>点击<code>File Extensions</code>新建工程分组<code>tos/arch</code>。点击右侧的<code>Add Files</code>添加<code>TencentOS\arm-v7m\cortex-m4\common</code>里的<code>tos_cpu.c</code>文件和<code>TencentOS\arm-v7m\cortex-m4\armcc</code>里的<code>port_c.c</code>和<code>port_c.S</code>。同样新建工程分组和<code>tos/kernel</code>。添加<code>TencentOS\kernel\core</code>里的所有<code>.c</code>文件。另外，pm是内核中的低功耗组件，基础移植的时候可以不添加。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000b" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<h3 id="添加TencentOS-tiny头文件目录"><a href="#添加TencentOS-tiny头文件目录" class="headerlink" title="添加TencentOS tiny头文件目录"></a>添加TencentOS tiny头文件目录</h3><p>打开魔法棒<code>Options for Target</code>按钮，选<code>C/C++</code>， 右侧<code>Use</code>选项打开下拉菜<br>点击添加的头文件目录如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">..\TencentOS\arm-v7m\common\include</span><br><span class="line">..\TencentOS\arm-v7m\cortex-m4\armcc</span><br><span class="line">..\TencentOS\core\include</span><br><span class="line">..\TencentOS\cmsis_os</span><br><span class="line">..\TencentOS\TOS-CONFIG</span><br></pre></td></tr></table></figure>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000012" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>//在<code>C/C++</code>界面上一定要勾上c99，否则编译的时候出underfined reference 的错误（好像不是这个原因，是我忘了添加<code>tos_cpu.c</code>文件了，不需要）</p>
+<h3 id="修改部分代码"><a href="#修改部分代码" class="headerlink" title="修改部分代码"></a>修改部分代码</h3><p>修改SYSTEM/USART/usart.c第29行，_sys_exit(int x) 改为 void _sys_exit(int x)</p>
+<p>修改stm32f4xx_it.c</p>
+<ol>
+<li>包含<code>#include &quot;tos_k.h&quot;</code> 头文件</li>
+<li>注释掉<code>PendSV_Handler</code>函数</li>
+<li>在<code>SysTick_Handler</code>函数中添加TencentOS tiny的调度处理函数<br>修改后<code>stm32f4xx_it.c</code>长这样<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;stm32f4xx_it.h&quot;</span><br><span class="line">#include &quot;tos_k.h&quot;</span><br><span class="line">...</span><br><span class="line">&#x2F;**</span><br><span class="line">  * @brief  This function handles PendSVC exception.</span><br><span class="line">  * @param  None</span><br><span class="line">  * @retval None</span><br><span class="line">  *&#x2F;</span><br><span class="line">&#x2F;&#x2F;void PendSV_Handler(void)</span><br><span class="line">&#x2F;&#x2F;&#123;</span><br><span class="line">&#x2F;&#x2F;&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">  * @brief  This function handles SysTick Handler.</span><br><span class="line">  * @param  None</span><br><span class="line">  * @retval None</span><br><span class="line">  *&#x2F;</span><br><span class="line">void SysTick_Handler(void)</span><br><span class="line">&#123;</span><br><span class="line">  if (tos_knl_is_running())</span><br><span class="line">  &#123;</span><br><span class="line">    tos_knl_irq_enter();</span><br><span class="line">    tos_tick_handler();</span><br><span class="line">    tos_knl_irq_leave();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="编写main-c"><a href="#编写main-c" class="headerlink" title="编写main.c"></a>编写main.c</h3><p>这里参考官方测试代码，原链接在这里 <a href="https://github.com/Tencent/TencentOS-tiny/blob/master/doc/10.Porting_Manual_for_KEIL.md" target="_blank" rel="noopener">https://github.com/Tencent/TencentOS-tiny/blob/master/doc/10.Porting_Manual_for_KEIL.md</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;sys.h&quot;</span><br><span class="line">#include &quot;delay.h&quot;</span><br><span class="line">#include &quot;usart.h&quot;</span><br><span class="line"></span><br><span class="line">#include &quot;tos_k.h&quot;</span><br><span class="line">#include &quot;cmsis_os.h&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;task1</span><br><span class="line">#define TASK1_STK_SIZE		256</span><br><span class="line">void task1(void *pdata);</span><br><span class="line">osThreadDef(task1, osPriorityNormal, 1, TASK1_STK_SIZE);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;task2</span><br><span class="line">#define TASK2_STK_SIZE		256</span><br><span class="line">void task2(void *pdata);</span><br><span class="line">osThreadDef(task2, osPriorityNormal, 1, TASK2_STK_SIZE);</span><br><span class="line"></span><br><span class="line">void task1(void *pdata)</span><br><span class="line">&#123;</span><br><span class="line">	 int count &#x3D; 1;</span><br><span class="line">	 while(1)</span><br><span class="line">	 &#123;</span><br><span class="line">			 printf(&quot;\r\nHello world!\r\n###This is task1 ,count is %d \r\n&quot;, count++);</span><br><span class="line">			 osDelay(2000);</span><br><span class="line">	 &#125;</span><br><span class="line">&#125;</span><br><span class="line">void task2(void *pdata)</span><br><span class="line">&#123;</span><br><span class="line">	 int count &#x3D; 1;</span><br><span class="line">	 while(1)</span><br><span class="line">	 &#123;</span><br><span class="line">			 printf(&quot;\r\nHello TencentOS !\r\n***This is task2 ,count is %d \r\n&quot;, count++);</span><br><span class="line">			 osDelay(1000);</span><br><span class="line">	 &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main(void)</span><br><span class="line">&#123;</span><br><span class="line">	uart_init(115200);	&#x2F;&#x2F;bps 115200</span><br><span class="line">	printf(&quot;Welcome to TencentOS tiny\r\n&quot;);</span><br><span class="line"></span><br><span class="line">	osKernelInitialize(); &#x2F;&#x2F;TOS Tiny kernel initialize</span><br><span class="line">	osThreadCreate(osThread(task1), NULL);&#x2F;&#x2F; Create task1</span><br><span class="line">	osThreadCreate(osThread(task2), NULL);&#x2F;&#x2F; Create task2</span><br><span class="line">	osKernelStart();&#x2F;&#x2F;Start TOS Tiny</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编译并测试"><a href="#编译并测试" class="headerlink" title="编译并测试"></a>编译并测试</h2><p>编译和下载与模板例子<a href="#jump">模板例子</a>一样，<code>F7</code>编译工程文件，没有错误的话连接ST-LINK V2和开发板，点击Download下载程序到开发板。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d910013000010" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<p>找一个USB转串口连接上电脑和开发板的UART1端口，记得TX-RX，RX-TX交替连接。打开串口调试助手，选择波特率115200，然后复位开发板，就可以收到上面的信息了。task1和task2交替打印，就说明TencentOS-tiny的任务调度功能实现了，移植成功。</p>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://shijiexu.asuscomm.com:9000/api/file/getImage?fileId=5eca938f535d91001300000c" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
+
+<h1 id="下载链接"><a href="#下载链接" class="headerlink" title="下载链接"></a>下载链接</h1><p>我放在github上了<a href="https://github.com/ZmengXu/STM32ProjectTemplate.git" target="_blank" rel="noopener">https://github.com/ZmengXu/STM32ProjectTemplate.git</a>。如果访问不了，可以发<a href="http://mailto:shijiexu2010@gmail.com/" target="_blank" rel="noopener">邮件</a>找我要。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+
+        
+        <p><strong>文章作者：</strong><a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">Zmeng</a></p> <p><span class="post-time"> <strong>最后更新：</strong>2020-11-01 21:20:52</span> <p><strong>文章链接：</strong><a href="/2020/05/TecentOS-tiny-in-STM32F4/" target="_blank" rel="external">http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/</a> </p> <p><span><strong>版权声明：</strong> 除特别声明外，博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="external"> CC BY-NC-SA 4.0</a> 协议。转载请注明<a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">作者</a>和<a href="/" target="_blank" rel="external">原始链接</a>！</span></p>
+        
+    </div>
+    
+    <footer>
+        <a href="http://zmengxu.github.io">
+            <img src="/img/KN.jpg" alt="Zmeng">
+            Zmeng
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TecentOS-tiny/" rel="tag">TecentOS tiny</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&title=《TecentOS tiny in STM32F4》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&title=《TecentOS tiny in STM32F4》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《TecentOS tiny in STM32F4》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/06/GitUsage/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">Git 的常用用法</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/04/SpanwiseAverage/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">SpanwiseAverage</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Valine Comments -->
+    <div class="comments vcomment" id="comments"></div>
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//unpkg.com/valine@latest/dist/Valine.min.js"></script>
+    <!-- Valine Comments script -->
+    <script>
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+          return GUEST_INFO.indexOf(item) > -1
+        });
+        new Valine({
+            el: '#comments',
+            notify: 'false' == 'true',
+            verify: 'false' == 'true',
+            appId: "jSnJYeB0Mz2qEgLvWLVeFITM-gzGzoHsz",
+            appKey: "UMSnheA5eqofhCnBt4ArgQph",
+            avatar: "mm",
+            placeholder: "Just go go",
+            guest_info: guest_info.length == 0 ? GUEST_INFO : guest_info,
+            pageSize: "10"
+        })
+    </script>
+    <!-- Valine Comments end -->
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            <span>博客内容遵循 <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>Zmeng &copy; 2018 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&title=《TecentOS tiny in STM32F4》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&title=《TecentOS tiny in STM32F4》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《TecentOS tiny in STM32F4》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/05/TecentOS-tiny-in-STM32F4/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACHklEQVR42u3aQW7DMAwEwP7/0+61QOF4SaoFLI1OQRArHB8IkdTXV7yuX+vn98kv736TfL9sYWBgvJZxfVx3f/AZk+yc7JY8i4GBcQ7jLogksX5+Kgm694IwMDAwku2SfXoHRwwMDIxVjN4hL0FiYGBg9IrYanrNU21SPC+rxTEwMF7IyIP4/89/Mt/AwMB4FeMqruTZ+VGvHBUGBsbWjF6brJcue4PSPB4MDIy9Gb00Wr0k0Wuu5SMEDAyMXRmrrmpVw6o22h52w8DA2JqRF5B5wTlp6I8GABgYGFsz8gsW86sS+fExeYkYGBinMfI2WaHtFSAXX63AwMDYjpEXrqvabfPRwkMtjoGBsR1jUogmgDwfJjtHk1gMDIxNGfMuVnUAMN+hCcDAwNiIUU2g1dK3uvOy3iEGBsYLGb0DWRUzafdHB1AMDIxjGL0jXV4GJ/je0BQDA2NvxuSqRK+VlgddTcEYGBh7M6qN/qShX30R81eAgYFxDqNXlObl6ORlPcSDgYFxAGM+OOylzqTcLSRcDAyMAxg5pnp5Ik+jzbEoBgbGpoyruPL7GtUkm6Ta2//FwMDYmtFLdr12Wx5cksR7KRsDA+O9jFXHvlVJM48BAwPjNEa1fZan6WqIo1IWAwMDoxXuZFSQDEcxMDAwJo3+eRFbeAUYGBgHMJIitvpN3uFLmncPe2JgYGzNWFWO9i5P9NpwzaEmBgbG+xjfJuO8Ks0IdpQAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>SpanwiseAverage | Zmeng Blogs | 记一些IoT和OpenFOAM的事儿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="postProcess">
+    <meta name="description" content="很久之前就把网站搭建好了，但一直没往里写东西。最近被一位神秘的大佬催更，写篇文章吧。无意中看到了一个之前写的后处理工具，决定就拿这个作第一篇博客。  需求OpenFOAM不能对计算结果进行周向平均处理。所以就写了个后处理程序，用于对轴向对称流场的三维结果进行周向平均。 解决思路确定一个周向平均操作需要给定两个量，基点basePoint和旋转向量spanwiseVector。接下来可以通过两种方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpanwiseAverage">
+<meta property="og:url" content="http://zmengxu.github.io/2019/04/SpanwiseAverage/index.html">
+<meta property="og:site_name" content="Zmeng Blogs">
+<meta property="og:description" content="很久之前就把网站搭建好了，但一直没往里写东西。最近被一位神秘的大佬催更，写篇文章吧。无意中看到了一个之前写的后处理工具，决定就拿这个作第一篇博客。  需求OpenFOAM不能对计算结果进行周向平均处理。所以就写了个后处理程序，用于对轴向对称流场的三维结果进行周向平均。 解决思路确定一个周向平均操作需要给定两个量，基点basePoint和旋转向量spanwiseVector。接下来可以通过两种方法">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-04-19T18:59:31.000Z">
+<meta property="article:modified_time" content="2020-11-01T21:20:52.077Z">
+<meta property="article:author" content="Zmeng">
+<meta property="article:tag" content="postProcess">
+<meta name="twitter:card" content="summary">
+    
+        <link rel="alternate" type="application/atom+xml" title="Zmeng Blogs" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/KN.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">Zmeng</h5>
+          <a href="mailto:shijiexu2010@gmail.com" title="shijiexu2010@gmail.com" class="mail">shijiexu2010@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/ZmengXu" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                关注
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                文章
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/messages"  >
+                <i class="icon icon-lg icon-comments"></i>
+                留言
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user-circle"></i>
+                关于
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">SpanwiseAverage</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+		
+
+        <a href="/" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-home"></i>
+        </a>
+
+		
+		
+		<a href="/atom.xml" target="_blank" title="rss" class="header-icon waves-effect waves-circle waves-light rss" id="menuFeed">
+			<i class="icon icon-lg icon-rss"></i>
+		</a>
+		
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">SpanwiseAverage</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-04-19T18:59:31.000Z" itemprop="datePublished" class="page-time">
+  2019-04-19
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/OpenFOAM/">OpenFOAM</a><ul class="article-category-list-child"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/OpenFOAM/utility/">utility</a></li></ul></li></ul>
+
+            
+        </h5>
+    </div>
+
+	
+			
+
+		
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#需求"><span class="post-toc-number">1.</span> <span class="post-toc-text">需求</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#解决思路"><span class="post-toc-number">2.</span> <span class="post-toc-text">解决思路</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#具体步骤"><span class="post-toc-number">3.</span> <span class="post-toc-text">具体步骤</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#1-确定初始截面"><span class="post-toc-number">3.1.</span> <span class="post-toc-text">1. 确定初始截面</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-旋转采样"><span class="post-toc-number">3.2.</span> <span class="post-toc-text">2. 旋转采样</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#3-插值获取采样点上的物理量"><span class="post-toc-number">3.3.</span> <span class="post-toc-text">3. 插值获取采样点上的物理量</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#2-取周向平均"><span class="post-toc-number">3.4.</span> <span class="post-toc-text">2. 取周向平均</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#下载链接"><span class="post-toc-number">4.</span> <span class="post-toc-text">下载链接</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-SpanwiseAverage"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">SpanwiseAverage</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-04-19 18:59:31" datetime="2019-04-19T18:59:31.000Z"  itemprop="datePublished">2019-04-19</time>
+
+			
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/OpenFOAM/">OpenFOAM</a><ul class="article-category-list-child"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/OpenFOAM/utility/">utility</a></li></ul></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>很久之前就把网站搭建好了，但一直没往里写东西。最近被一位神秘的大佬催更，写篇文章吧。<br>无意中看到了一个之前写的后处理工具，决定就拿这个作第一篇博客。</p>
+</blockquote>
+<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>OpenFOAM不能对计算结果进行周向平均处理。所以就写了个后处理程序，用于对轴向对称流场的三维结果进行周向平均。</p>
+<h2 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h2><p>确定一个周向平均操作需要给定两个量，基点basePoint和旋转向量spanwiseVector。接下来可以通过两种方法实现周向平均过程。</p>
+<ul>
+<li><p>对流场的所有网格遍历，将所有位于同一圆周线上的点加和求平均。可以这么实现：对原始坐标系进行坐标变换，将原来的三维坐标(x,y,z)映射到原点为basePoint高度方向为spanwiseVector的圆柱坐标系（r,z,theta）中；然后在theta方向上求平均，即将所有具有相同（r,z）的节点上的物理量取平均。</p>
+</li>
+<li><p>取有限个经过基点basePoint和旋转向量spanwiseVector的截面，将各截面上的物理量值求平均。这么实现：过基点和旋转向量选取任意一个截面，提取截面上各点的物理量值；将该初始截面旋转一个角度dTheta，对旋转后的新的截面也提取一次。如此，旋转一周均匀截取n个截面。最终对这n个截面上的物理量值取平均，得到周向平均的结果。</p>
+</li>
+</ul>
+<p>显然，当截面数n比较小的情况下，方案二的计算量显著小于方案一；和理论值之间的偏差取决于截面数量，精度可控。所以接下来就按照方案二的思路来介绍，代码是基础OpenFOAM-4.1写的。</p>
+<h2 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h2><ol>
+<li>首先需要确定一个初始截面，提取截面上的坐标，在圆柱坐标系中记为（r,z,0）；</li>
+<li>将初始截面上的每个点绕基点和旋转向量旋转角度dTheta，得到一个旋转后的采样点的坐标（r,z,theta）；</li>
+<li>通过插值的方法得到旋转后的采样点上的物理量值。</li>
+<li>重复步骤2-3，依次获取n个采样点的物理量值，取平均得到初始截面上任意一点（r,z,0）的周向平均值。</li>
+</ol>
+<hr>
+<p>实现方法上参考了这篇<a href="https://www.cfd-online.com/Forums/openfoam-solving/58459-homogeneous-average.html" target="_blank" rel="noopener">cfd-online</a>帖子。</p>
+<h3 id="1-确定初始截面"><a href="#1-确定初始截面" class="headerlink" title="1. 确定初始截面"></a>1. 确定初始截面</h3><p>值得一提的是，周向平均并不是一个普适性的后处理过程，它对计算域的几何形状有要求。有些几何形状并不是轴向对称，或者不是关于用户提供的基点basePoint和旋转向量normVector轴向对称的，从原理上讲本就无法进行周向平均。那么这样的几何形状怎么处理，这里涉及到一个容错的问题，这在后面会提到，这应该也是为什么OpenFOAM官方没有提供周向平均后处理程序的一个原因。</p>
+<p>本着尽可能用OpenFOAM现有类和函数的原则，我们找到了cuttingPlane类和sampledSurface类，前者可以根据基点basePoint和法向量normVector截取一个初始截面并获得在该截面上的点的坐标，后者则是用来获取这些点的物理量值的。显然，我们直接继承这两个类就可以完成步骤1的主要内容了，而OpenFOAM恰好有一个很好的例子，就是sampledPlan类，同时继承了上面提到的两个类，它在这里</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$FOAM_SRC&#x2F;sampling&#x2F;sampledSurface&#x2F;sampledPlan</span><br></pre></td></tr></table></figure>
+<p>所以我们就按照sampledPlan类改写，新建一个新的类sampledPlaneSpanwise，这里截取一段类的声明，新增了采样点个数nPoints_和旋转向量spanwiseVector_. 基点basePoint和初始截面的法向量normVector就不需要了，因为他们可以直接从cuttingPlane类继承来。</p>
+<p>sampledPlaneSpanwise/sampledPlaneSpanwise.H</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">class sampledPlaneSpanwise</span><br><span class="line">:</span><br><span class="line">    public sampledSurface,</span><br><span class="line">    public cuttingPlane</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Private data</span><br><span class="line">        &#x2F;&#x2F;- Direction normal to the plane</span><br><span class="line">            word axis_;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F;- Number of points used to compute the average</span><br><span class="line">            label nPoints_;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F;- Number of points used to compute the average</span><br><span class="line">            vector spanwiseVector_;</span><br></pre></td></tr></table></figure>
+
+<p>在sampledPlaneSpanwise类的构造函数中，有这么一段，用于判断初始截面的法向量normVector和旋转向量spanwiseVector是否垂直，这是容错机制的一部分。</p>
+<p>sampledPlaneSpanwise/sampledPlaneSpanwise.C</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">const vector&amp; normal &#x3D; spanwiseVector_;</span><br><span class="line">const vector&amp; planNorm &#x3D; this-&gt;normal();</span><br><span class="line">if ( mag(normal&amp;planNorm) &gt; SMALL)</span><br><span class="line">&#123;</span><br><span class="line">    FatalErrorIn</span><br><span class="line">        (</span><br><span class="line">             &quot;Foam::sampledAveragePlane::sampledAveragePlane&quot;</span><br><span class="line">        )   &lt;&lt; &quot;The spanwiseVector normal is not perpendicular to the plane normal&quot;</span><br><span class="line">            &lt;&lt; exit(FatalError);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-旋转采样"><a href="#2-旋转采样" class="headerlink" title="2. 旋转采样"></a>2. 旋转采样</h3><p>圆周采样类circleSet，可以给定圆心，半径和旋转轴在圆周方向上均匀采样，得到一组采样点的坐标。这么一来，圆柱坐标变换和旋转坐标变换的步骤也省了，所以说还是用OpenFOAM现有类和函数好啊。</p>
+<p>circleSet类的声明和定义在这里：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$FOAM_SRC&#x2F;sampling&#x2F;sampledSet&#x2F;circle</span><br></pre></td></tr></table></figure>
+
+<p>所以，旋转采样就可以这么实现：为每个初始截面上的点currentPoint，创建一个circleSet对象，其中包含nPoints_个采样点，相邻两个采样点之间的夹角是dTheta。</p>
+<p>sampledPlaneSpanwise/sampledPlaneSpanwiseTemplates.C</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Extract the circle in the homogeneous direction</span><br><span class="line">    circleSet   line(&quot;circleLine&quot;, mesh(), searchEngine, axis_, circleOrigin, normalVector, currentPoint, dTheta);</span><br></pre></td></tr></table></figure>
+<p>circleSet在创建新对象时会调用findCell函数查找改采样点是否在计算域内，不在的话会有输出警告。这也是前面提到的容错机制的一种，只有选取了合适的基点basePoint法向量normVector和旋转向量spanwiseVector才能保证所有的采样点都在计算域内。</p>
+<h3 id="3-插值获取采样点上的物理量"><a href="#3-插值获取采样点上的物理量" class="headerlink" title="3. 插值获取采样点上的物理量"></a>3. 插值获取采样点上的物理量</h3><p>参考 $FOAM_SRC/sampling/sampledSurface/sampledPlan/sampledPlanTemplates.C 当中的实现方法，调用interpolate函数，就可以得到圆周采样点上的物理量值。实现如下</p>
+<p>sampledPlaneSpanwise/sampledPlaneSpanwiseTemplates.C</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">forAll(line, lineI)</span><br><span class="line">&#123;</span><br><span class="line">        linevalues[lineI] &#x3D; interpolator.interpolate</span><br><span class="line">        (</span><br><span class="line">                line[lineI],</span><br><span class="line">                line.cells()[lineI],</span><br><span class="line">                line.faces()[lineI]</span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-取周向平均"><a href="#2-取周向平均" class="headerlink" title="2. 取周向平均"></a>2. 取周向平均</h3><p>得到圆周采样点上的物理量值后，对nPoints_个点求平均即可得到改点处的周向平均值。对初始截面上每个点在每个物理量场(p, U, T …)上作相同地采样和平均处理，即可得到初始截面上的所有点的周向平均值，输出即可。而输出的格式因为继承了sampling类，既可以导出vtk格式又可以得到行列式的raw格式。具体参考sampledPlan的使用方法一样。文末提供的下载链接中也提供了一个算例作参考。</p>
+<h2 id="下载链接"><a href="#下载链接" class="headerlink" title="下载链接"></a>下载链接</h2><p>我放在github上了<a href="https://github.com/ZmengXu/sampledAveragePlane" target="_blank" rel="noopener">https://github.com/ZmengXu/sampledAveragePlane</a>。如果访问不了，可以发邮件找我要。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+
+        
+        <p><strong>文章作者：</strong><a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">Zmeng</a></p> <p><span class="post-time"> <strong>最后更新：</strong>2020-11-01 21:20:52</span> <p><strong>文章链接：</strong><a href="/2019/04/SpanwiseAverage/" target="_blank" rel="external">http://zmengxu.github.io/2019/04/SpanwiseAverage/</a> </p> <p><span><strong>版权声明：</strong> 除特别声明外，博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="external"> CC BY-NC-SA 4.0</a> 协议。转载请注明<a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">作者</a>和<a href="/" target="_blank" rel="external">原始链接</a>！</span></p>
+        
+    </div>
+    
+    <footer>
+        <a href="http://zmengxu.github.io">
+            <img src="/img/KN.jpg" alt="Zmeng">
+            Zmeng
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/postProcess/" rel="tag">postProcess</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&title=《SpanwiseAverage》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&title=《SpanwiseAverage》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2019/04/SpanwiseAverage/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《SpanwiseAverage》 — Zmeng Blogs&url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/05/TecentOS-tiny-in-STM32F4/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">TecentOS tiny in STM32F4</h4>
+      </a>
+    </div>
+  
+
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Valine Comments -->
+    <div class="comments vcomment" id="comments"></div>
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//unpkg.com/valine@latest/dist/Valine.min.js"></script>
+    <!-- Valine Comments script -->
+    <script>
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+          return GUEST_INFO.indexOf(item) > -1
+        });
+        new Valine({
+            el: '#comments',
+            notify: 'false' == 'true',
+            verify: 'false' == 'true',
+            appId: "jSnJYeB0Mz2qEgLvWLVeFITM-gzGzoHsz",
+            appKey: "UMSnheA5eqofhCnBt4ArgQph",
+            avatar: "mm",
+            placeholder: "Just go go",
+            guest_info: guest_info.length == 0 ? GUEST_INFO : guest_info,
+            pageSize: "10"
+        })
+    </script>
+    <!-- Valine Comments end -->
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            <span>博客内容遵循 <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>Zmeng &copy; 2018 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&title=《SpanwiseAverage》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&title=《SpanwiseAverage》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2019/04/SpanwiseAverage/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《SpanwiseAverage》 — Zmeng Blogs&url=http://zmengxu.github.io/2019/04/SpanwiseAverage/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACFklEQVR42u3aQVLDMAwF0Nz/0uUADOFLchhiv6w6UGq9LoRk6bri5zN+vn/a/SnXEw8GBsZrGcnxyQFJ0PlZ+fsxMDDOYfwU1v3r+8+pBjo5CwMDAyNPtXnivmdjYGBgzBnVhrNaOGJgYGD0mtgk+fYKvjxBL+jFMTAwXsjI0+Xfv35kvoGBgfEqRm8MmTSlkwRdjgoDA2NrxhOl3nyQ2YsHAwPjHEa+wpVch+UB9S71MDAwzmHMQ2ymyNvkO/+KMTAw9mPkrWm1TOyl7+YAAAMDYztG1Vpd85pcyS3YFsHAwNiOUb0+W7VU0VvCwMDAOIcxSbV5Abd28WLZWgYGBsZLGJOU12t6888pfH0YGBhbM+YBzRvgXhO7bCSAgYHxEkaCmbSd82FAYcCAgYGxNaN6vdV7z7zQLKRdDAyMLRjJDdw9rPrbZMxQLhAxMDC2ZsyTXS+7JyVg/h4MDIwTGOU1rNYaRC/0vHnGwMDYm1EdDPRKt96oslA4YmBgHMPIE24vaVZDLPwVBgbGMYz5CkX+1VTP/eXaDgMDY1PGp/jkreykuW323xgYGJsyJok1oSbBJYVmeWcEAwNjO0aSZBNAFZaXgBgYGBjJ8LKXIqvsaurHwMDAqA4gq9f9SXtcSNYYGBgYi8acSXD5Tx78v4GBgfEvGUkTW70+612x9YagGBgYezPy1nG+MFENdO2JGBgYL2R8Ab1J5PNNjCqvAAAAAElFTkSuQmCC" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>How does the dynamic library loading work in OpenFOAM | Zmeng Blogs | 记一些IoT和OpenFOAM的事儿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="code analysis,OpenFOAM">
+    <meta name="description" content="In OpenFOAM, the solvers and numerical models are separated. Most of the numerical models are located in the $FOAM_SRC path, and being compiled to a dynamic library “.so” binary file, which can be lo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How does the dynamic library loading work in OpenFOAM">
+<meta property="og:url" content="http://zmengxu.github.io/2020/10/DynamicLibraries/index.html">
+<meta property="og:site_name" content="Zmeng Blogs">
+<meta property="og:description" content="In OpenFOAM, the solvers and numerical models are separated. Most of the numerical models are located in the $FOAM_SRC path, and being compiled to a dynamic library “.so” binary file, which can be lo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-10-31T22:03:54.000Z">
+<meta property="article:modified_time" content="2020-11-01T21:20:52.077Z">
+<meta property="article:author" content="Zmeng">
+<meta property="article:tag" content="code analysis">
+<meta property="article:tag" content="OpenFOAM">
+<meta name="twitter:card" content="summary">
+    
+        <link rel="alternate" type="application/atom+xml" title="Zmeng Blogs" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/KN.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">Zmeng</h5>
+          <a href="mailto:shijiexu2010@gmail.com" title="shijiexu2010@gmail.com" class="mail">shijiexu2010@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/ZmengXu" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                关注
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                文章
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/messages"  >
+                <i class="icon icon-lg icon-comments"></i>
+                留言
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user-circle"></i>
+                关于
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">How does the dynamic library loading work in OpenFOAM</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+		
+
+        <a href="/" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-home"></i>
+        </a>
+
+		
+		
+		<a href="/atom.xml" target="_blank" title="rss" class="header-icon waves-effect waves-circle waves-light rss" id="menuFeed">
+			<i class="icon icon-lg icon-rss"></i>
+		</a>
+		
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">How does the dynamic library loading work in OpenFOAM</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-10-31T22:03:54.000Z" itemprop="datePublished" class="page-time">
+  2020-10-31
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/software/">software</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+	
+			
+
+		
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#dynamic-library-loading-in-C"><span class="post-toc-number">1.</span> <span class="post-toc-text">dynamic library loading in C++</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#library-loading-searching-and-closing"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">library loading searching and closing</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#function-name-decoration"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">function name decoration</span></a></li></ol></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#dynamic-library-loading-in-OpenFOAM"><span class="post-toc-number">2.</span> <span class="post-toc-text">dynamic library loading in OpenFOAM</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#dlLibraryTable-class"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">dlLibraryTable class</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#The-implementation-of-a-short-runTime-selection"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">The implementation of a short runTime selection</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#The-order-of-the-dynamic-libraries-loading"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">The order of the dynamic libraries loading</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-DynamicLibraries"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">How does the dynamic library loading work in OpenFOAM</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-10-31 22:03:54" datetime="2020-10-31T22:03:54.000Z"  itemprop="datePublished">2020-10-31</time>
+
+			
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/software/">software</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>In OpenFOAM, the solvers and numerical models are separated. Most of the numerical models are located in the <code>$FOAM_SRC</code> path, and being compiled to a dynamic library “.so” binary file, which can be loaded either by linking it during the solver compiling process or loading it by specify the “.so” file in the case controlDict.  For example, we develop a new combustion model, named <code>PaSR</code>, and compile it to a “libPaSR.so”. When we run a case, we just need to add a line <code>libs   (&quot;libPaSR.so&quot;);</code> in <code>controlDict</code>. Then, we can see and use this model in the <code>reactingFoam</code> solver.</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>How does the “libPaSR.so” file is loaded, and why the solver knows that a new model “PaSR” is available? This blog will explain it.</p>
+</blockquote>
+<h1 id="dynamic-library-loading-in-C"><a href="#dynamic-library-loading-in-C" class="headerlink" title="dynamic library loading in C++"></a>dynamic library loading in C++</h1><p>Before digging into OpenFOAM, let’s see how does the dynamic library is loaded in C++. There are three famous function named <code>dlopen</code>, <code>dlsym</code> and <code>dlclose</code>, which are used to open, find function address and close library, in your operating system.</p>
+<h2 id="library-loading-searching-and-closing"><a href="#library-loading-searching-and-closing" class="headerlink" title="library loading searching and closing"></a>library loading searching and closing</h2><p>I wrote a short code to demonstrate how does it work, see <a href="https://github.com/ZmengXu/dynamicLibloading/tree/master/ch01" target="_blank" rel="noopener">https://github.com/ZmengXu/dynamicLibloading/tree/master/ch01</a></p>
+<p>First, we define two models WSR and PaSR (which are two simple combustion model) in two <code>.C</code> files. Each file has only one simple function, named <code>get_library_name</code>. Compiling these two <code>.C</code> files to two libraries, <code>libWSR.so</code> and <code>libPaSR.so</code>.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In WSR.C</span></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">get_library_name</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"This is WSR"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// In PaSR.C</span></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">get_library_name</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"This is PaSR"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Second, we write a solver named <code>solverFoam</code> to call <code>get_library_name</code> function in <code>libWSR.so</code> and <code>libPaSR.so</code>.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"word.H"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"IOstreams.H"</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> Foam;</span><br><span class="line"></span><br><span class="line"><span class="comment">// define a function pointer type</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">char</span>* (*funcType)(<span class="keyword">void</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(argc&lt;<span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        Info &lt;&lt; <span class="string">"usage: &lt;library&gt;\n"</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">char</span>* librarypath = argv[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// RTLD_LAZY means "there may be symbols that can't be resolved;</span></span><br><span class="line">    <span class="comment">// don't try to resolve them until they're used." </span></span><br><span class="line">    <span class="keyword">auto</span> libhandle = dlopen(librarypath, RTLD_LAZY);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(libhandle != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        Info &lt;&lt; librarypath &lt;&lt; <span class="string">" is found."</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">auto</span> voidPtr = dlsym(libhandle, <span class="string">"_Z16get_library_namev"</span>);</span><br><span class="line"></span><br><span class="line">        funcType funcPtr = (funcType)voidPtr;</span><br><span class="line"></span><br><span class="line">        Info &lt;&lt; funcPtr() &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">        dlclose(libhandle);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        Info &lt;&lt; librarypath &lt;&lt; <span class="string">" is not found."</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Info &lt;&lt; <span class="string">"End."</span> &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In this code, we get the librarypath from the solver argument, and try to find the dynamic library, load the library to computer memory and get a handle libhandle using dlopen. We use dlsym to find the function <code>_Z16get_library_namev</code> in this library and call this function to print its information.</p>
+<p>you can use Allrun in <a href="https://github.com/ZmengXu/dynamicLibloading/blob/master/Allrun" target="_blank" rel="noopener">https://github.com/ZmengXu/dynamicLibloading/blob/master/Allrun</a> to compile and run it.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">solverFoam "libWSR.so"</span><br></pre></td></tr></table></figure>
+<p>For example, typing the above commands after compiling the library and solver. It will find the “libWSR.so” in <code>$LD_LIBRARY_PATH</code> and printing the following results.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libWSR.so is found.</span><br><span class="line">This is WSR</span><br><span class="line">End.</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="function-name-decoration"><a href="#function-name-decoration" class="headerlink" title="function name decoration"></a>function name decoration</h2><p>Here, we have two things need to be explained:</p>
+<ul>
+<li><p><code>typedef char* (*funcType)(void);</code> is an alias, define a function pointer type. This function has a return value of <code>char*</code> and a <code>void</code> argument. We call this kind of function as <code>funcType</code>. Now you can understand that Line 32: <code>funcType funcPtr = (funcType)voidPtr;</code> means that we are about to convert <code>voidPtr</code> to a function pointer and assign it to a new <code>funcType</code> type function pointer <code>funcPtr</code>. Thus, it can be used as <code>funcPtr()</code> in Line 34.</p>
+</li>
+<li><p>You must be curious that the function name we defined in <code>PaSR.C</code> is “get_library_name”, but why we are looking for the function name “_Z16get_library_namev”. This is due to the <a href="https://en.wikipedia.org/wiki/Name_mangling" target="_blank" rel="noopener">name mangling</a> (also called name decoration) in C++ compiler. We can use <code>objdump -tT $FOAM_USER_LIBBIN/libPaSR.so</code> or <code>nm -D $FOAM_USER_LIBBIN/libPaSR.so</code> to see the function list in the <code>libPaSR.so</code> dynamic libray.</p>
+</li>
+</ul>
+<p>This is an example for <code>nm -D $FOAM_USER_LIBBIN/libPaSR.so</code> result, you can find <code>_Z16get_library_namev</code> in the optput.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">0000000000201040 B __bss_start</span><br><span class="line">                 U __cxa_atexit</span><br><span class="line">                 w __cxa_finalize</span><br><span class="line">0000000000201040 D _edata</span><br><span class="line">0000000000201048 B _end</span><br><span class="line">0000000000000924 T _fini</span><br><span class="line">                 w __gmon_start__</span><br><span class="line">0000000000000748 T _init</span><br><span class="line">                 w _ITM_deregisterTMCloneTable</span><br><span class="line">                 w _ITM_registerTMCloneTable</span><br><span class="line">                 w _Jv_RegisterClasses</span><br><span class="line">0000000000000900 T _Z16get_library_namev</span><br><span class="line">                 U _ZN4Foam13messageStreamcvRNS_8OSstreamEEv</span><br><span class="line">                 U _ZN4Foam4InfoE</span><br><span class="line">                 U _ZN4FoamlsERNS_7OstreamEPKc</span><br><span class="line">                 U _ZNSt8ios_base4InitC1Ev</span><br><span class="line">                 U _ZNSt8ios_base4InitD1Ev</span><br></pre></td></tr></table></figure>
+
+<p>The name mangling is a common issue when you want to use Hybrid Programming in OpenFOAM, like “C” and “C++”,  or “fortune” and “C++”. You can use the keyword <code>extern C</code> to avoid the compiler converting function name. For example, we can change WSR.C to:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">char</span>* <span class="title">get_library_name</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"This is PaSR"</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> __cplusplus</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>compile it and use <code>nm -D $FOAM_USER_LIBBIN/libPaSR.so</code> you can get this. The function name is not decorated anymore.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">0000000000201020 B __bss_start</span><br><span class="line">                 w __cxa_finalize</span><br><span class="line">0000000000201020 D _edata</span><br><span class="line">0000000000201028 B _end</span><br><span class="line">0000000000000688 T _fini</span><br><span class="line">0000000000000680 T get_library_name</span><br><span class="line">                 w __gmon_start__</span><br><span class="line">0000000000000540 T _init</span><br><span class="line">                 w _ITM_deregisterTMCloneTable</span><br><span class="line">                 w _ITM_registerTMCloneTable</span><br><span class="line">                 w _Jv_RegisterClasses</span><br></pre></td></tr></table></figure>
+
+<h1 id="dynamic-library-loading-in-OpenFOAM"><a href="#dynamic-library-loading-in-OpenFOAM" class="headerlink" title="dynamic library loading in OpenFOAM"></a>dynamic library loading in OpenFOAM</h1><p>In OpenFOAM, the dynamic library are loaded and unloaded implicitly in the <code>dlLibraryTable</code> class, see <code>$FOAM_SRC/OpenFOAM/db/dynamicLibrary/dlLibraryTable</code>. I created a tutorial code to demonstrate how does it work, see <a href="https://github.com/ZmengXu/dynamicLibloading/tree/master/ch02" target="_blank" rel="noopener">https://github.com/ZmengXu/dynamicLibloading/tree/master/ch02</a></p>
+<h2 id="dlLibraryTable-class"><a href="#dlLibraryTable-class" class="headerlink" title="dlLibraryTable class"></a>dlLibraryTable class</h2><p>In the dlLibraryTable class, it has a constructor using a specific dictionary to look through all the libraries, load the libraries to computer memory and store the library names and pointers to libNames_ and libPtrs_ list. When the dlLibraryTable object is deleted, it will call the deconstructor function to unload these libraries. </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //</span></span><br><span class="line"></span><br><span class="line">Foam::dlLibraryTable::dlLibraryTable</span><br><span class="line">(</span><br><span class="line">    <span class="keyword">const</span> dictionary&amp; dict,</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">word</span>&amp; libsEntry</span><br><span class="line">)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">open</span>(dict, libsEntry);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //</span></span><br><span class="line"></span><br><span class="line">Foam::dlLibraryTable::~dlLibraryTable()</span><br><span class="line">&#123;</span><br><span class="line">    forAllReverse(libPtrs_, i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (libPtrs_[i])</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (debug)</span><br><span class="line">            &#123;</span><br><span class="line">                InfoInFunction</span><br><span class="line">                    &lt;&lt; <span class="string">"Closing "</span> &lt;&lt; libNames_[i]</span><br><span class="line">                    &lt;&lt; <span class="string">" with handle "</span> &lt;&lt; <span class="keyword">uintptr_t</span>(libPtrs_[i]) &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!dlClose(libPtrs_[i]))</span><br><span class="line">            &#123;</span><br><span class="line">                WarningInFunction&lt;&lt; <span class="string">"Failed closing "</span> &lt;&lt; libNames_[i]</span><br><span class="line">                    &lt;&lt; <span class="string">" with handle "</span> &lt;&lt; <span class="keyword">uintptr_t</span>(libPtrs_[i]) &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>In the solverFoam, we create a dictionary named controlDict, which will read a dictionary file controlDict, and providing the “libs” as the libsEntry. Then the libraies in the controlDict.libs will be loaded and unloaded automatically. This work is done in the <code>Time</code> class in <code>$FOAM_SRC/OpenFOAM/db/Time</code> and be called from <code>#include &quot;createTime.H&quot;</code> by each CFD solver. This is the reason why the libraries we wrote in the “libs” of controlDict will be loaded automaticlly.</p>
+<h2 id="The-implementation-of-a-short-runTime-selection"><a href="#The-implementation-of-a-short-runTime-selection" class="headerlink" title="The implementation of a short runTime selection"></a>The implementation of a short runTime selection</h2><p>In terms of the libraries, a base class combustionModelBase and a derived class WSR in the combustionModel folder are compiled to libcombustModel.so file.</p>
+<p>In the base class, a static HashTable pointer member WordConstructorTablePtr_ is created. A template class addWordConstructorToTable is defined to operate this pointer. In the addWordConstructorToTable constructor, the static HashTable pointer member WordConstructorTablePtr_ is created and insert a “debug value - typeName” pair into the table. Once the constructor is called, it will print “Try to insert typeName” in the constructor, if the typeName exist in the table, it will print “Duplicate entry  typeName in runtime selection table”.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//In combustionModel.H</span></span><br><span class="line"><span class="keyword">typedef</span> HashTable&lt; label, <span class="keyword">word</span> &gt; WordConstructorTable;</span><br><span class="line"><span class="keyword">static</span> WordConstructorTable* WordConstructorTablePtr_;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="class"><span class="keyword">class</span> <span class="title">Type</span> &gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">addWordConstructorToTable</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    addWordConstructorToTable( <span class="keyword">const</span> <span class="keyword">word</span>&amp; lookup = Type::typeName )</span><br><span class="line">    &#123;</span><br><span class="line">        constructWordConstructorTables();</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"Try to insert "</span> &lt;&lt; lookup </span><br><span class="line">        &lt;&lt; <span class="string">" into the WordConstructorTablePtr_"</span></span><br><span class="line">        &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        <span class="keyword">if</span> (!WordConstructorTablePtr_-&gt;insert(lookup, Type::debug))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cerr</span>&lt;&lt; <span class="string">"Duplicate entry "</span></span><br><span class="line">                &lt;&lt; lookup &lt;&lt; <span class="string">" in runtime selection table "</span></span><br><span class="line">                &lt;&lt; <span class="string">"combustionModelBase"</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">            error::safePrintStack(<span class="built_in">std</span>::<span class="built_in">cerr</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ~addWordConstructorToTable()</span><br><span class="line">    &#123;</span><br><span class="line">        destroyWordConstructorTables();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>WSR is inherited from the base class, so it also has the template class addWordConstructorToTable, in the WSR.C, an object addWSRWordConstructorTocombustionModelBaseTable_ is defined, which will call the constructor, and get the above output. We will see when the table is created. This is very important.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//In WSR.C</span></span><br><span class="line">WSR::addWordConstructorToTable&lt; WSR &gt; addWSRWordConstructorTocombustionModelBaseTable_;</span><br></pre></td></tr></table></figure>
+
+<p>Apart from that, a static function “New” is defined in combustionModelNew.C to search the typeName from this table.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// static Factory Method (selector)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">combustionModelBase::New</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">word</span>&amp; modelName)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    Info&lt;&lt; <span class="string">"\nWe are now in combustionModelBase::New fucntion "</span></span><br><span class="line">        &lt;&lt; <span class="string">"\nlooking for the "</span></span><br><span class="line">        &lt;&lt; modelName</span><br><span class="line">        &lt;&lt; <span class="string">" in the WordConstructorTable\n"</span></span><br><span class="line">        &lt;&lt; WordConstructorTablePtr_-&gt;sortedToc()</span><br><span class="line">        &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Find the class typeName pointer in the RTS Table </span></span><br><span class="line">    <span class="comment">// (HashTable&lt;word, autoPtr&lt;combustionModelBase&gt;(*)(word))</span></span><br><span class="line">    WordConstructorTable::iterator cstrIter =</span><br><span class="line">        WordConstructorTablePtr_-&gt;<span class="built_in">find</span>(modelName);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If the Factory Method was not found. </span></span><br><span class="line">    <span class="keyword">if</span> (cstrIter == WordConstructorTablePtr_-&gt;<span class="built_in">end</span>())</span><br><span class="line">    &#123;</span><br><span class="line">        FatalErrorIn</span><br><span class="line">        (</span><br><span class="line">            <span class="string">"combustionModelBase::New(const word&amp;)"</span></span><br><span class="line">        )   &lt;&lt; <span class="string">"Unknown combustionModelBase type "</span></span><br><span class="line">            &lt;&lt; modelName &lt;&lt; nl &lt;&lt; nl</span><br><span class="line">            &lt;&lt; <span class="string">"Valid combustionModelBase types are :"</span> &lt;&lt; <span class="built_in">endl</span></span><br><span class="line">            &lt;&lt; WordConstructorTablePtr_-&gt;sortedToc()</span><br><span class="line">            &lt;&lt; <span class="built_in">exit</span>(FatalError);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Info&lt;&lt; <span class="string">"\nWe found the modelName "</span></span><br><span class="line">        &lt;&lt; modelName</span><br><span class="line">        &lt;&lt; <span class="string">"\nThe debug value for it is "</span></span><br><span class="line">        &lt;&lt; (*WordConstructorTablePtr_)[modelName] &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="The-order-of-the-dynamic-libraries-loading"><a href="#The-order-of-the-dynamic-libraries-loading" class="headerlink" title="The order of the dynamic libraries loading"></a>The order of the dynamic libraries loading</h2><p>In the same way, PaSR is defined, the difference is that it is compiled separately to libPaSR.so file. The libcombustModel.so is written in the solverFoam’s Make/options and linked to the solverFoam during the compiling stage. while the libPaSR.so file is loaded when we run the solverFoam. You can use Allrun in <a href="https://github.com/ZmengXu/dynamicLibloading/blob/master/Allrun" target="_blank" rel="noopener">https://github.com/ZmengXu/dynamicLibloading/blob/master/Allrun</a> to compile and run it. Before the libPaSR.so is created, we can not find it in the <code>$LD_LIBRARY_PATH</code>, thus only one model <code>WSR</code> is available in the WordConstructorTable. After libPaSR.so is created, you will see the following outputs.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">Try to insert WSR into the WordConstructorTablePtr_</span><br><span class="line"></span><br><span class="line">Entering main()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Loading the libraries</span><br><span class="line"></span><br><span class="line">Try to insert PaSR into the WordConstructorTablePtr_</span><br><span class="line"></span><br><span class="line">After the libraries are loading</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">We are now in combustionModelBase::New fucntion</span><br><span class="line">looking for the PaSR in the WordConstructorTable</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line">(</span><br><span class="line">PaSR</span><br><span class="line">WSR</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">We found the modelName PaSR</span><br><span class="line">The debug value for it is 2</span><br><span class="line"></span><br><span class="line">End</span><br></pre></td></tr></table></figure>
+
+<p>It is interesting that WSR is inserted into the WordConstructorTablePtr_ before entring main() function, PaSR is inserted into the WordConstructorTablePtr_ after the libPaSR.so is loaded. This is because that libcombust.so is loaded before the main() function, while libPaSR.so is loaded during the run time. Once the dynamic library is loaded, the objects addWSRWordConstructorTocombustionModelBaseTable_ and addPaSRWordConstructorTocombustionModelBaseTable_ are constructed automatically in the computer memory as global variables. If we load one library twice, the insert function will reject the inserting. This is why we see the Duplicate entry before the OpenFOAM output header.</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+
+        
+        <p><strong>文章作者：</strong><a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">Zmeng</a></p> <p><span class="post-time"> <strong>最后更新：</strong>2020-11-01 21:20:52</span> <p><strong>文章链接：</strong><a href="/2020/10/DynamicLibraries/" target="_blank" rel="external">http://zmengxu.github.io/2020/10/DynamicLibraries/</a> </p> <p><span><strong>版权声明：</strong> 除特别声明外，博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="external"> CC BY-NC-SA 4.0</a> 协议。转载请注明<a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">作者</a>和<a href="/" target="_blank" rel="external">原始链接</a>！</span></p>
+        
+    </div>
+    
+    <footer>
+        <a href="http://zmengxu.github.io">
+            <img src="/img/KN.jpg" alt="Zmeng">
+            Zmeng
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OpenFOAM/" rel="tag">OpenFOAM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/code-analysis/" rel="tag">code analysis</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/10/DynamicLibraries/&title=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/10/DynamicLibraries/&title=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/10/DynamicLibraries/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/10/DynamicLibraries/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/08/OpenFOAMInstall/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">在Linux和Windows下安装OpenFOAM-8和OpenFOAMv2006</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Valine Comments -->
+    <div class="comments vcomment" id="comments"></div>
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//unpkg.com/valine@latest/dist/Valine.min.js"></script>
+    <!-- Valine Comments script -->
+    <script>
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+          return GUEST_INFO.indexOf(item) > -1
+        });
+        new Valine({
+            el: '#comments',
+            notify: 'false' == 'true',
+            verify: 'false' == 'true',
+            appId: "jSnJYeB0Mz2qEgLvWLVeFITM-gzGzoHsz",
+            appKey: "UMSnheA5eqofhCnBt4ArgQph",
+            avatar: "mm",
+            placeholder: "Just go go",
+            guest_info: guest_info.length == 0 ? GUEST_INFO : guest_info,
+            pageSize: "10"
+        })
+    </script>
+    <!-- Valine Comments end -->
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            <span>博客内容遵循 <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>Zmeng &copy; 2018 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/10/DynamicLibraries/&title=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/10/DynamicLibraries/&title=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/10/DynamicLibraries/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《How does the dynamic library loading work in OpenFOAM》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/10/DynamicLibraries/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMYAAADGCAAAAACs8KCBAAACMklEQVR42u3awY6DMAxF0f7/TzPbkSrCfTZUwrmsRp0COV082XE+H3wd/67vz8+++f3fs7vWb7ntkiFDxmsZx/JaL279Sv6Es2eStcmQIWMfBllEGsE8cNcMFNkyZMiQAYKVFHzpEmXIkCGjH7hpXHKwDBkyZNSaWELqhPKPenEZMmS8kMF33X//9yPzDRkyZLyKcYQX3zJbl3q8JUarkiFDxmhGrbBLC8d+KqJCU4YMGUMZvF1MI5gvqzMolSFDxg4Mvil2VyGYbqUVt/lkyJAxiMFvJo1obUOfvzeoW2XIkDGI0W9Byc/R+SY6ZiFDhozRjH7RxgMxRQZvkSFDxmhG2qbWwpe3u+m23UX4ypAhYwSDbN+nkZq2o7ytvZhvyJAhYyiD38aDOB0kdOI+7sVlyJDxcka6KVYr5tK2NkDKkCFjKCM93JB+/sTw4KLClSFDxjgG2UTrDwNQYfdEgShDhoxBjDRk+cs6g0k+lpAhQ8Y+jPSwBXl0bXjJr7gXlyFDxiAGj850nJA2pUEpKUOGjA0YPP5uKOPaRy6CSawMGTLGMdLWNI3d2rYd+lllyJAxlNFqGkvHNTr3nj5HhgwZoxm1sONjy/5IID5sIUOGjKEMfsyiBuDhWxszyJAhYx9GGnydgWWn7Gv14jJkyNiMkZaP9x4LK94gQ4aMbRidSCXjhHVw3xa4MmTIeCGDNLG8pCObbp2hpgwZMnZj8NvI2Y20QORLvGGoKUOGjPcx/gATdXRyrMMqOgAAAABJRU5ErkJggg==" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

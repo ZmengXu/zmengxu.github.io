@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Git 的常用用法 | Zmeng Blogs | 记一些IoT和OpenFOAM的事儿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content="git">
+    <meta name="description" content="Git and Github Usage Git Cheat SheetGit DocGit 教程  Git and Github Git is the open source distributed version control system that facilitates GitHub activities on your laptop or desktop.   It can be us">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git 的常用用法">
+<meta property="og:url" content="http://zmengxu.github.io/2020/06/GitUsage/index.html">
+<meta property="og:site_name" content="Zmeng Blogs">
+<meta property="og:description" content="Git and Github Usage Git Cheat SheetGit DocGit 教程  Git and Github Git is the open source distributed version control system that facilitates GitHub activities on your laptop or desktop.   It can be us">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-25T19:51:54.000Z">
+<meta property="article:modified_time" content="2020-11-01T21:20:52.077Z">
+<meta property="article:author" content="Zmeng">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+    
+        <link rel="alternate" type="application/atom+xml" title="Zmeng Blogs" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/KN.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">Zmeng</h5>
+          <a href="mailto:shijiexu2010@gmail.com" title="shijiexu2010@gmail.com" class="mail">shijiexu2010@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/ZmengXu" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                关注
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                文章
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/messages"  >
+                <i class="icon icon-lg icon-comments"></i>
+                留言
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/about"  >
+                <i class="icon icon-lg icon-user-circle"></i>
+                关于
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Git 的常用用法</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+		
+
+        <a href="/" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-home"></i>
+        </a>
+
+		
+		
+		<a href="/atom.xml" target="_blank" title="rss" class="header-icon waves-effect waves-circle waves-light rss" id="menuFeed">
+			<i class="icon icon-lg icon-rss"></i>
+		</a>
+		
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Git 的常用用法</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2020-06-25T19:51:54.000Z" itemprop="datePublished" class="page-time">
+  2020-06-25
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/software/">software</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+	
+			
+
+		
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#Git-and-Github-Usage"><span class="post-toc-number">1.</span> <span class="post-toc-text">Git and Github Usage</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Git-and-Github"><span class="post-toc-number">1.1.</span> <span class="post-toc-text">Git and Github</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Installation"><span class="post-toc-number">1.2.</span> <span class="post-toc-text">Installation</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Anaconda-in-Linux"><span class="post-toc-number">1.2.1.</span> <span class="post-toc-text">Anaconda in Linux</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#An-example-for-the-git-installation-in-Linux"><span class="post-toc-number">1.2.2.</span> <span class="post-toc-text">An example for the git installation in Linux</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#An-example-for-the-git-installation-using-conda"><span class="post-toc-number">1.2.3.</span> <span class="post-toc-text">An example for the git installation using conda</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#How-to-use-conda"><span class="post-toc-number">1.3.</span> <span class="post-toc-text">How to use conda</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#CONFIGURE-TOOLING"><span class="post-toc-number">1.3.1.</span> <span class="post-toc-text">CONFIGURE TOOLING</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#CREATE-REPOSITORIES"><span class="post-toc-number">1.3.2.</span> <span class="post-toc-text">CREATE REPOSITORIES</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#MAKE-CHANGES"><span class="post-toc-number">1.3.3.</span> <span class="post-toc-text">MAKE CHANGES</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#REVIEW-HISTORY"><span class="post-toc-number">1.3.4.</span> <span class="post-toc-text">REVIEW HISTORY</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#GROUP-CHANGES"><span class="post-toc-number">1.3.5.</span> <span class="post-toc-text">GROUP CHANGES</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#SAVE-FRAGMENTS"><span class="post-toc-number">1.3.6.</span> <span class="post-toc-text">SAVE FRAGMENTS</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#SYNCHRONIZE-CHANGES"><span class="post-toc-number">1.3.7.</span> <span class="post-toc-text">SYNCHRONIZE CHANGES</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Glossary"><span class="post-toc-number">1.4.</span> <span class="post-toc-text">Glossary</span></a></li></ol></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-GitUsage"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Git 的常用用法</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2020-06-25 19:51:54" datetime="2020-06-25T19:51:54.000Z"  itemprop="datePublished">2020-06-25</time>
+
+			
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/software/">software</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="Git-and-Github-Usage"><a href="#Git-and-Github-Usage" class="headerlink" title="Git and Github Usage"></a><strong>Git and Github Usage</strong></h1><blockquote>
+<p><a href="https://github.github.com/training-kit/downloads/github-git-cheat-sheet.pdf" target="_blank" rel="noopener">Git Cheat Sheet</a><br><a href="https://git-scm.com/docs" target="_blank" rel="noopener">Git Doc</a><br><a href="https://www.runoob.com/git/git-tutorial.html" target="_blank" rel="noopener">Git 教程</a></p>
+</blockquote>
+<h2 id="Git-and-Github"><a href="#Git-and-Github" class="headerlink" title="Git and Github"></a>Git and Github</h2><ol>
+<li><a href="https://git-scm.com/docs" target="_blank" rel="noopener"><code>Git</code></a> is the open source distributed version control system that facilitates GitHub activities on your laptop or desktop.</li>
+</ol>
+<ul>
+<li>It can be used to install update run uninstall package without <code>sudo</code> rights.</li>
+<li>It can be used to create different environments for software version management. This is useful in switching different project.</li>
+</ul>
+<ol start="2">
+<li><code>Github</code> is a platform for hosting and collaborating on Git repositories.</li>
+</ol>
+<h2 id="Installation"><a href="#Installation" class="headerlink" title="Installation"></a>Installation</h2><h3 id="Anaconda-in-Linux"><a href="#Anaconda-in-Linux" class="headerlink" title="Anaconda in Linux"></a>Anaconda in Linux</h3><p>See <a href="https://git-scm.com/" target="_blank" rel="noopener">https://git-scm.com/</a></p>
+<h3 id="An-example-for-the-git-installation-in-Linux"><a href="#An-example-for-the-git-installation-in-Linux" class="headerlink" title="An example for the git installation in Linux"></a>An example for the git installation in Linux</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">apt-get install libcurl4-gnutls-dev libexpat1-dev gettext \</span><br><span class="line">  libz-dev libssl-dev</span><br><span class="line">apt-get install git</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
+<h3 id="An-example-for-the-git-installation-using-conda"><a href="#An-example-for-the-git-installation-using-conda" class="headerlink" title="An example for the git installation using conda"></a>An example for the git installation using conda</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install -c anaconda git</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="How-to-use-conda"><a href="#How-to-use-conda" class="headerlink" title="How to use conda"></a>How to use conda</h2><h3 id="CONFIGURE-TOOLING"><a href="#CONFIGURE-TOOLING" class="headerlink" title="CONFIGURE TOOLING"></a>CONFIGURE TOOLING</h3><p>Sets the name you want atached to your commit transactions</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name "[name]"</span><br></pre></td></tr></table></figure>
+
+<p>Sets the email you want atached to your commit transactions</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.email "[email address]"</span><br></pre></td></tr></table></figure>
+
+<p>Enables helpful colorization of command line output</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global color.ui auto</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="CREATE-REPOSITORIES"><a href="#CREATE-REPOSITORIES" class="headerlink" title="CREATE REPOSITORIES"></a>CREATE REPOSITORIES</h3><p>Downloads a project and its entire version history from github</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone [url]</span><br></pre></td></tr></table></figure>
+
+<p>Creates a new floder named [project-name]<br>and init it as a local repository </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git init [project-name]</span><br></pre></td></tr></table></figure>
+<p>or init the current folder</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br></pre></td></tr></table></figure>
+
+<h3 id="MAKE-CHANGES"><a href="#MAKE-CHANGES" class="headerlink" title="MAKE CHANGES"></a>MAKE CHANGES</h3><p>stage files (in the current folder) into the repository </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add [file]</span><br><span class="line">git add -A</span><br><span class="line">git add .</span><br></pre></td></tr></table></figure>
+
+<p>Unstages the file, but preserve its contents<br>Like un-add one of the file</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset [file]</span><br></pre></td></tr></table></figure>
+
+<p>Deletes the file from the working directory and stages the deletion<br>–cached is “Removes the file from version control but preserves the file locally”</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git rm [file]</span><br><span class="line">git rm --cached [file]</span><br></pre></td></tr></table></figure>
+
+<p>Changes the file name and prepares it for commit</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git mv [file-original] [file-renamed]</span><br></pre></td></tr></table></figure>
+
+<p>record the staged files permanently in version history<br>DO COMMITS</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git commit -m "[descriptive message]"</span><br></pre></td></tr></table></figure>
+
+<p>REDO COMMITS<br>Erase mistakes and craf replacement history<br>Undoes all commits afer [commit], preserving changes locally</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset [commit]</span><br></pre></td></tr></table></figure>
+
+<p>Discards all history and changes back to the specified commit</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard [commit]</span><br></pre></td></tr></table></figure>
+
+<h3 id="REVIEW-HISTORY"><a href="#REVIEW-HISTORY" class="headerlink" title="REVIEW HISTORY"></a>REVIEW HISTORY</h3><p>Browse and inspect the evolution of project files</p>
+<p>List all of the files in the current repository<br>A text file named .gitignore suppresses accidental versioning of<br>files and paths matching the specified paterns</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git ls-files</span><br><span class="line">git ls-files --other --ignored --exclude-standard</span><br></pre></td></tr></table></figure>
+
+<p>Lists all new or modified files to be commited</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git status</span><br></pre></td></tr></table></figure>
+
+<p>Shows file differences not yet staged<br>It works only when you have add this file<br>but now you change it without adding again<br>exit the environment.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff</span><br></pre></td></tr></table></figure>
+<p>If it is staged (git add), you can not see<br>the difference anymore. But you can use this<br>command to see the file differences between staging and the last file version</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff --staged</span><br></pre></td></tr></table></figure>
+
+<p>Shows content differences between two branches</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff [first-branch]...[second-branch]</span><br></pre></td></tr></table></figure>
+
+
+<p>Lists version history for the current branch<br>List the log in breaf<br>Lists version history for a file, including renames</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git log</span><br><span class="line">git log --oneline</span><br><span class="line">git log --follow [file]</span><br></pre></td></tr></table></figure>
+
+<p>Outputs metadata and content changes of the specified commit</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git show [commit]</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="GROUP-CHANGES"><a href="#GROUP-CHANGES" class="headerlink" title="GROUP CHANGES"></a>GROUP CHANGES</h3><p>Name a series of commits and combine completed efforts<br>The master branch is created when you record (commit) the first change</p>
+<p>Lists all local branches in the current repository</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch</span><br></pre></td></tr></table></figure>
+
+<p>Jump to another branch, or creates a new branch and jump (if not exist) </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git checkout [branch-name]</span><br><span class="line">git branch [branch-name]</span><br></pre></td></tr></table></figure>
+
+<p>Combines the specified branch’s history into the current branch</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git merge [branch]</span><br><span class="line">git rebase [branch]</span><br></pre></td></tr></table></figure>
+
+<p>Deletes the specified branch</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch -d [branch-name]</span><br></pre></td></tr></table></figure>
+
+<h3 id="SAVE-FRAGMENTS"><a href="#SAVE-FRAGMENTS" class="headerlink" title="SAVE FRAGMENTS"></a>SAVE FRAGMENTS</h3><p>Shelve and restore incomplete changes</p>
+<p>Temporarily stores all modified tracked files</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash</span><br></pre></td></tr></table></figure>
+
+<p>Restores the most recently stashed files</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash pop</span><br></pre></td></tr></table></figure>
+
+<p>Lists all stashed changesets</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash list</span><br></pre></td></tr></table></figure>
+
+<p>Discards the most recently stashed changeset</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git stash drop</span><br></pre></td></tr></table></figure>
+
+<h3 id="SYNCHRONIZE-CHANGES"><a href="#SYNCHRONIZE-CHANGES" class="headerlink" title="SYNCHRONIZE CHANGES"></a>SYNCHRONIZE CHANGES</h3><p>Register a repository bookmark and exchange version history</p>
+<p>Downloads all history from the repository bookmark</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git fetch [bookmark]</span><br></pre></td></tr></table></figure>
+
+<p>Combines bookmark’s branch into current local branch</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git merge [bookmark]/[branch]</span><br></pre></td></tr></table></figure>
+
+<p>Uploads all local branch commits to GitHub</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git push [alias] [branch]</span><br><span class="line">git push origin dev</span><br><span class="line">git push -u origin [branch]</span><br></pre></td></tr></table></figure>
+
+<p>Uploads a specific branch (dev) to GitHub, if there is no dev branch in GitHub, a new branch will be created</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git push origin dev</span><br></pre></td></tr></table></figure>
+
+<p>Downloads bookmark history and incorporates changes</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull</span><br></pre></td></tr></table></figure>
+
+<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p><code>git</code>: an open source, distributed version-control system<br><code>GitHub</code>: a platform for hosting and collaborating on Git repositories<br><code>commit</code>: a Git object, a snapshot of your entire repository compressed into a SHA<br><code>branch</code>: a lightweight movable pointer to a commit<br><code>clone</code>: a local version of a repository, including all commits and branches<br><code>remote</code>: a common repository on GitHub that all team member use to exchange their changes<br><code>fork</code>: a copy of a repository on GitHub owned by a different user<br><code>pull request</code>: a place to compare and discuss the differences introduced on a branch with reviews, comments, integrated tests, and more<br><code>HEAD</code>: representing your current working directory, the HEAD pointer can be moved to different branches, tags, or commits when using git checkout</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+
+        
+        <p><strong>文章作者：</strong><a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">Zmeng</a></p> <p><span class="post-time"> <strong>最后更新：</strong>2020-11-01 21:20:52</span> <p><strong>文章链接：</strong><a href="/2020/06/GitUsage/" target="_blank" rel="external">http://zmengxu.github.io/2020/06/GitUsage/</a> </p> <p><span><strong>版权声明：</strong> 除特别声明外，博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="external"> CC BY-NC-SA 4.0</a> 协议。转载请注明<a href="mailto:shijiexu2010@gmail.com" target="_blank" rel="external" title="shijiexu2010@gmail.com">作者</a>和<a href="/" target="_blank" rel="external">原始链接</a>！</span></p>
+        
+    </div>
+    
+    <footer>
+        <a href="http://zmengxu.github.io">
+            <img src="/img/KN.jpg" alt="Zmeng">
+            Zmeng
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git/" rel="tag">git</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/06/GitUsage/&title=《Git 的常用用法》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/06/GitUsage/&title=《Git 的常用用法》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/06/GitUsage/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Git 的常用用法》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/06/GitUsage/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between">
+  
+    <div class="waves-block waves-effect prev">
+      <a href="/2020/08/OpenFOAMInstall/" id="post-prev" class="post-nav-link">
+        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+        <h4 class="title">在Linux和Windows下安装OpenFOAM-8和OpenFOAMv2006</h4>
+      </a>
+    </div>
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2020/05/TecentOS-tiny-in-STM32F4/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">TecentOS tiny in STM32F4</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Valine Comments -->
+    <div class="comments vcomment" id="comments"></div>
+    <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+    <script src="//unpkg.com/valine@latest/dist/Valine.min.js"></script>
+    <!-- Valine Comments script -->
+    <script>
+        var GUEST_INFO = ['nick','mail','link'];
+        var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+          return GUEST_INFO.indexOf(item) > -1
+        });
+        new Valine({
+            el: '#comments',
+            notify: 'false' == 'true',
+            verify: 'false' == 'true',
+            appId: "jSnJYeB0Mz2qEgLvWLVeFITM-gzGzoHsz",
+            appKey: "UMSnheA5eqofhCnBt4ArgQph",
+            avatar: "mm",
+            placeholder: "Just go go",
+            guest_info: guest_info.length == 0 ? GUEST_INFO : guest_info,
+            pageSize: "10"
+        })
+    </script>
+    <!-- Valine Comments end -->
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            <span>博客内容遵循 <a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>Zmeng &copy; 2018 - 2020</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://zmengxu.github.io/2020/06/GitUsage/&title=《Git 的常用用法》 — Zmeng Blogs&pic=http://zmengxu.github.io/img/KN.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://zmengxu.github.io/2020/06/GitUsage/&title=《Git 的常用用法》 — Zmeng Blogs&source=" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://zmengxu.github.io/2020/06/GitUsage/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Git 的常用用法》 — Zmeng Blogs&url=http://zmengxu.github.io/2020/06/GitUsage/&via=http://zmengxu.github.io" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK4AAACuCAAAAACKZ2kyAAABx0lEQVR42u3aS2rEMBAFwNz/0hPILpiI9yRLdqC0MmOjKXvR9EdfX/H6/KzrL9e1sudtCxcXd5n7Ga7r1tfrfIe5fXBxcZ/ijgPNeIskzCWvHQU7XFzcl3FXEpQ8qOHi4v4v7jiQJXfzz4GLi/sGblu65AXMuLOxsVbDxcVd4M4lKPdeb+zv4uLiltxPuZKgloeh+t9xcXGPcNuWx1wBk7dFot1wcXE3c/Mt2uCVpC9JafRnCMPFxT3CzY9ZzN2dG77++gUXF/cgtx2EJIVQfjfPYXBxcU9y2ybpDlD0sXBxcV/DzROUuRZJ0WzFxcU9wm1DUpsG1eXN3MAVFxf3Vm7eBm0TmrwtUjRNcHFxH+LmDc25J9u4hIuL+xQ3H5cmqcn6eCaa/ODi4m7j5sew7g1J7RENXFzck9y2+MnbnUljpW7F4uLiHuSujDrmiqLJNi4uLu5Bbr7yoUh7tKIepeDi4m7jtgFlbhybpErtXVxc3N3cueA1fuO2sMlTJVxc3JPc9i/bwxkrJVC0BS4u7kPc/BRljquLIlxc3Fdy29SkPoA1tuHi4h7krgxB22faIDhZq+Hi4i5wVxqmdw1Lxq+Bi4t7kPsNk8FD+pRpQtEAAAAASUVORK5CYII=" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
